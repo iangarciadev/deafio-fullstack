@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import prisma from '../../prisma'
 
+// Cria uma nova tarefa associada a um cliente específico.
 export async function createTask(req: Request, res: Response) {
   const { title, description, clientId } = req.body
 
@@ -11,6 +12,8 @@ export async function createTask(req: Request, res: Response) {
   return res.status(201).json(task)
 }
 
+// Lista tarefas com filtros opcionais por status e/ou clientId via query string.
+// Cada tarefa retornada inclui os dados do cliente relacionado.
 export async function getTasks(req: Request, res: Response) {
   const { status, clientId } = req.query
 
@@ -25,6 +28,7 @@ export async function getTasks(req: Request, res: Response) {
   return res.json(tasks)
 }
 
+// Atualiza título, descrição e/ou status de uma tarefa pelo seu id.
 export async function updateTask(req: Request, res: Response) {
   const { id } = req.params
   const { title, description, status } = req.body
@@ -37,6 +41,7 @@ export async function updateTask(req: Request, res: Response) {
   return res.json(task)
 }
 
+// Remove uma tarefa pelo id. Responde com 204 (sem corpo) em caso de sucesso.
 export async function deleteTask(req: Request, res: Response) {
   const { id } = req.params
 

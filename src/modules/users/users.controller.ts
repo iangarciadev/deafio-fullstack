@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import prisma from '../../prisma'
 
+// Cadastra um novo usuário. Verifica se o e-mail já existe, faz o hash da senha
+// e salva no banco. Retorna o id e e-mail do usuário criado.
 export async function register(req: Request, res: Response) {
   const { email, password } = req.body
 
@@ -20,6 +22,8 @@ export async function register(req: Request, res: Response) {
   return res.status(201).json({ id: user.id, email: user.email })
 }
 
+// Autentica um usuário. Confere se o e-mail existe e se a senha bate com o hash
+// armazenado. Em caso de sucesso, devolve um JWT válido por 1 dia.
 export async function login(req: Request, res: Response) {
   const { email, password } = req.body
 

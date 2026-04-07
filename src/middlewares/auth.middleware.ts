@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 
+// Middleware de autenticação JWT. Lê o token do header Authorization (formato
+// "Bearer <token>"), valida a assinatura e injeta o userId decodificado na
+// requisição. Bloqueia com 401 se o token estiver ausente ou inválido.
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization
 
