@@ -26,21 +26,30 @@ export async function updateClient(req: Request, res: Response) {
   const { id } = req.params
   const { name, email } = req.body
 
-  const client = await prisma.client.update({
+  const client = await prisma.client.findUnique({ where: { id: Number(id) } })
+
+  if (!client) return res.status(404).json({ error: 'Cliente não encontrado' })
+  if (client.userId !== req.userId) return res.status(403).json({ error: 'Acesso negado' })
+
+  const updated = await prisma.client.update({
     where: { id: Number(id) },
     data: { name, email }
   })
 
-  return res.json(client)
+  return res.json(updated)
 }
 
 // Remove um cliente pelo id. Responde com 204 (sem corpo) em caso de sucesso.
 export async function deleteClient(req: Request, res: Response) {
   const { id } = req.params
 
-  await prisma.client.delete({
-    where: { id: Number(id) }
-  })
+  const client = await prisma.client.findUnique({ where: { id: Number(id) } })
+
+  if (!client) return res.status(404).json({ error: 'Cliente não encontrado' })
+
+  if (client.userId !== req.userId) return res.status(403).json({ error: 'Acesso negado' })
+
+  await prisma.client.delete({ where: { id: Number(id) } })
 
   return res.status(204).send()
 }
