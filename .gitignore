@@ -27,4 +27,7 @@ Thumbs.db
 .idea/
 *.swp
 
+# Claude Code
+.claude/
+
 /src/generated/prisma
