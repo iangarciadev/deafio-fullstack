@@ -45,11 +45,13 @@ const clients = ref<{ id: number; name: string; email: string }[]>([])
 const name = ref('')
 const email = ref('')
 
+// Busca todos os clientes do usuário autenticado via GET /clients e popula a lista.
 async function fetchClients() {
   const response = await api.get('/clients')
   clients.value = response.data
 }
 
+// Cria um novo cliente via POST /clients com nome e email, limpa o formulário e atualiza a lista.
 async function handleCreate() {
   await api.post('/clients', { name: name.value, email: email.value })
   name.value = ''
@@ -57,6 +59,7 @@ async function handleCreate() {
   fetchClients()
 }
 
+// Carrega a lista de clientes ao montar o componente.
 onMounted(fetchClients)
 </script>
 

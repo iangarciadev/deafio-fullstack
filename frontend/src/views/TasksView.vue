@@ -76,6 +76,7 @@ const description = ref('')
 const clientId = ref('')
 const statusFilter = ref('')
 
+// Converte o status interno da tarefa para o rótulo em português exibido na interface.
 function statusLabel(status: string) {
   const map: Record<string, string> = {
     PENDING: 'Pendente',
@@ -85,6 +86,7 @@ function statusLabel(status: string) {
   return map[status] ?? status
 }
 
+// Retorna o objeto de classes CSS para colorir o badge de acordo com o status da tarefa.
 function statusBadgeClass(status: string) {
   return {
     'badge-pending': status === 'PENDING',
@@ -93,6 +95,8 @@ function statusBadgeClass(status: string) {
   }
 }
 
+// Busca as tarefas do usuário autenticado via GET /tasks.
+// Aplica o filtro de status como query param caso esteja selecionado.
 async function fetchTasks() {
   const params: Record<string, string> = {}
   if (statusFilter.value) params.status = statusFilter.value
@@ -100,11 +104,14 @@ async function fetchTasks() {
   tasks.value = response.data
 }
 
+// Busca todos os clientes via GET /clients para popular o dropdown de seleção no formulário.
 async function fetchClients() {
   const response = await api.get('/clients')
   clients.value = response.data
 }
 
+// Cria uma nova tarefa via POST /tasks com título, descrição e clientId.
+// Limpa o formulário e atualiza a lista de tarefas após a criação.
 async function handleCreate() {
   await api.post('/tasks', {
     title: title.value,
@@ -117,11 +124,13 @@ async function handleCreate() {
   fetchTasks()
 }
 
+// Atualiza o status de uma tarefa via PUT /tasks/:id e recarrega a lista.
 async function handleUpdateStatus(task: { id: number; status: string }) {
   await api.put(`/tasks/${task.id}`, { status: task.status })
   fetchTasks()
 }
 
+// Carrega as tarefas e os clientes ao montar o componente.
 onMounted(() => {
   fetchTasks()
   fetchClients()

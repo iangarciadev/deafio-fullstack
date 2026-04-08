@@ -38,6 +38,9 @@ const error = ref('')
 const loading = ref(false)
 const router = useRouter()
 
+// Autentica o usuário via POST /users/login.
+// Em caso de sucesso, salva o token JWT no localStorage e redireciona para /clients.
+// Em caso de erro, exibe mensagem de credenciais inválidas.
 async function handleLogin() {
   loading.value = true
   error.value = ''

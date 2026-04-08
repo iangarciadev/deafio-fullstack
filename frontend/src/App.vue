@@ -4,8 +4,11 @@ import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
+
+// Retorna true se a rota atual for a página de login, ocultando a navbar nesse caso.
 const isLoginPage = computed(() => route.path === '/')
 
+// Remove o token de autenticação do localStorage e redireciona para a página de login.
 function logout() {
   localStorage.removeItem('token')
   router.push('/')
