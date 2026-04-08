@@ -58,7 +58,8 @@ class _TasksScreenState extends State<TasksScreen> {
 
   /// Cria uma nova tarefa com [title] e [description] vinculada ao cliente atual
   /// via API e recarrega a lista.
-  Future<void> createTask(String title, String description) async {
+  /// Retorna true em caso de sucesso, false se ocorrer erro.
+  Future<bool> createTask(String title, String description) async {
     try {
       await apiPost('/tasks', {
         'title': title,
@@ -66,22 +67,27 @@ class _TasksScreenState extends State<TasksScreen> {
         'clientId': widget.clientId,
       });
       fetchTasks();
+      return true;
     } catch (e) {
       _showError(e.toString());
+      return false;
     }
   }
 
   /// Atualiza o [title] e [description] da tarefa de id [taskId] via API
   /// e recarrega a lista.
-  Future<void> editTask(int taskId, String title, String description) async {
+  /// Retorna true em caso de sucesso, false se ocorrer erro.
+  Future<bool> editTask(int taskId, String title, String description) async {
     try {
       await apiPut('/tasks/$taskId', {
         'title': title,
         'description': description,
       });
       fetchTasks();
+      return true;
     } catch (e) {
       _showError(e.toString());
+      return false;
     }
   }
 
@@ -213,92 +219,112 @@ class _TasksScreenState extends State<TasksScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              task == null ? 'Nova tarefa' : 'Editar tarefa',
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.text,
+      builder: (ctx) {
+        bool saving = false;
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: titleCtrl,
-              autofocus: true,
-              style: GoogleFonts.inter(color: AppColors.text),
-              decoration: InputDecoration(
-                labelText: 'Título',
-                labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
-                filled: true,
-                fillColor: AppColors.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    task == null ? 'Nova tarefa' : 'Editar tarefa',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: titleCtrl,
+                    autofocus: true,
+                    style: GoogleFonts.inter(color: AppColors.text),
+                    decoration: InputDecoration(
+                      labelText: 'Título',
+                      labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descCtrl,
+                    style: GoogleFonts.inter(color: AppColors.text),
+                    decoration: InputDecoration(
+                      labelText: 'Descrição (opcional)',
+                      labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: saving
+                        ? null
+                        : () async {
+                            final t = titleCtrl.text.trim();
+                            if (t.isEmpty) return;
+                            setModalState(() => saving = true);
+                            final ok = task == null
+                                ? await createTask(t, descCtrl.text.trim())
+                                : await editTask(
+                                    task['id'], t, descCtrl.text.trim());
+                            if (ok && ctx.mounted) Navigator.pop(ctx);
+                            setModalState(() => saving = false);
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: saving
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            task == null ? 'Adicionar' : 'Salvar',
+                            style:
+                                GoogleFonts.inter(fontWeight: FontWeight.w600),
+                          ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: descCtrl,
-              style: GoogleFonts.inter(color: AppColors.text),
-              decoration: InputDecoration(
-                labelText: 'Descrição (opcional)',
-                labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
-                filled: true,
-                fillColor: AppColors.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                final t = titleCtrl.text.trim();
-                if (t.isEmpty) return;
-                Navigator.pop(context);
-                if (task == null) {
-                  createTask(t, descCtrl.text.trim());
-                } else {
-                  editTask(task['id'], t, descCtrl.text.trim());
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                task == null ? 'Adicionar' : 'Salvar',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 

@@ -43,23 +43,29 @@ class _ClientsScreenState extends State<ClientsScreen> {
   }
 
   /// Cria um novo cliente com [name] e [email] via API e recarrega a lista.
-  Future<void> createClient(String name, String email) async {
+  /// Retorna true em caso de sucesso, false se ocorrer erro.
+  Future<bool> createClient(String name, String email) async {
     try {
       await apiPost('/clients', {'name': name, 'email': email});
       fetchClients();
+      return true;
     } catch (e) {
       _showError(e.toString());
+      return false;
     }
   }
 
   /// Atualiza o cliente de id [clientId] com novos [name] e [email] via API
   /// e recarrega a lista.
-  Future<void> editClient(int clientId, String name, String email) async {
+  /// Retorna true em caso de sucesso, false se ocorrer erro.
+  Future<bool> editClient(int clientId, String name, String email) async {
     try {
       await apiPut('/clients/$clientId', {'name': name, 'email': email});
       fetchClients();
+      return true;
     } catch (e) {
       _showError(e.toString());
+      return false;
     }
   }
 
@@ -87,94 +93,113 @@ class _ClientsScreenState extends State<ClientsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              client == null ? 'Novo cliente' : 'Editar cliente',
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.text,
+      builder: (ctx) {
+        bool saving = false;
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameCtrl,
-              autofocus: true,
-              style: GoogleFonts.inter(color: AppColors.text),
-              decoration: InputDecoration(
-                labelText: 'Nome',
-                labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
-                filled: true,
-                fillColor: AppColors.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    client == null ? 'Novo cliente' : 'Editar cliente',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: nameCtrl,
+                    autofocus: true,
+                    style: GoogleFonts.inter(color: AppColors.text),
+                    decoration: InputDecoration(
+                      labelText: 'Nome',
+                      labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    style: GoogleFonts.inter(color: AppColors.text),
+                    decoration: InputDecoration(
+                      labelText: 'E-mail',
+                      labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: saving
+                        ? null
+                        : () async {
+                            final n = nameCtrl.text.trim();
+                            final e = emailCtrl.text.trim();
+                            if (n.isEmpty || e.isEmpty) return;
+                            setModalState(() => saving = true);
+                            final ok = client == null
+                                ? await createClient(n, e)
+                                : await editClient(client['id'], n, e);
+                            if (ok && ctx.mounted) Navigator.pop(ctx);
+                            setModalState(() => saving = false);
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: saving
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            client == null ? 'Adicionar' : 'Salvar',
+                            style:
+                                GoogleFonts.inter(fontWeight: FontWeight.w600),
+                          ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-              style: GoogleFonts.inter(color: AppColors.text),
-              decoration: InputDecoration(
-                labelText: 'E-mail',
-                labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
-                filled: true,
-                fillColor: AppColors.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                final n = nameCtrl.text.trim();
-                final e = emailCtrl.text.trim();
-                if (n.isEmpty || e.isEmpty) return;
-                Navigator.pop(context);
-                if (client == null) {
-                  createClient(n, e);
-                } else {
-                  editClient(client['id'], n, e);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                client == null ? 'Adicionar' : 'Salvar',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
