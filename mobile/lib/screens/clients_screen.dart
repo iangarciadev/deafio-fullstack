@@ -13,7 +13,7 @@ class ClientsScreen extends StatefulWidget {
 }
 
 class _ClientsScreenState extends State<ClientsScreen> {
-  List clients = [];
+  List<dynamic> clients = [];
   bool loading = true;
 
   @override

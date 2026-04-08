@@ -12,7 +12,7 @@ class TasksScreen extends StatefulWidget {
 }
 
 class _TasksScreenState extends State<TasksScreen> {
-  List tasks = [];
+  List<dynamic> tasks = [];
   bool loading = true;
   String? selectedStatus;
 
