@@ -53,7 +53,7 @@
           </div>
           <div class="task-side">
             <span :class="statusBadgeClass(task.status)" class="badge">{{ statusLabel(task.status) }}</span>
-            <select v-model="task.status" class="input status-select" @change="handleUpdateStatus(task)">
+            <select :value="task.status" class="input status-select" @change="handleUpdateStatus(task, ($event.target as HTMLSelectElement).value)">
               <option value="PENDING">Pendente</option>
               <option value="IN_PROGRESS">Em andamento</option>
               <option value="DONE">Concluído</option>
@@ -124,9 +124,10 @@ async function handleCreate() {
   fetchTasks()
 }
 
-// Atualiza o status de uma tarefa via PUT /tasks/:id e recarrega a lista.
-async function handleUpdateStatus(task: { id: number; status: string }) {
-  await api.put(`/tasks/${task.id}`, { status: task.status })
+// Atualiza o status de uma tarefa via PUT /tasks/:id com o novo valor selecionado.
+// O estado local só é atualizado após a confirmação da API via fetchTasks().
+async function handleUpdateStatus(task: { id: number; status: string }, newStatus: string) {
+  await api.put(`/tasks/${task.id}`, { status: newStatus })
   fetchTasks()
 }
 
