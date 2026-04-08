@@ -1,18 +1,39 @@
 <template>
-  <div class="container">
-    <h1>Clientes</h1>
+  <div>
+    <div class="page-header">
+      <h1>Clientes</h1>
+      <span class="count">{{ clients.length }} cadastrado{{ clients.length !== 1 ? 's' : '' }}</span>
+    </div>
 
-    <form @submit.prevent="handleCreate">
-      <input v-model="name" placeholder="Nome" required />
-      <input v-model="email" type="email" placeholder="Email" required />
-      <button type="submit">Adicionar</button>
-    </form>
+    <div class="card form-card">
+      <h2>Adicionar cliente</h2>
+      <form @submit.prevent="handleCreate" class="form-row">
+        <div class="form-field">
+          <label for="name">Nome</label>
+          <input id="name" v-model="name" class="input" placeholder="Nome completo" required />
+        </div>
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input id="email" v-model="email" class="input" type="email" placeholder="email@exemplo.com" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-add">Adicionar</button>
+      </form>
+    </div>
 
-    <ul>
-      <li v-for="client in clients" :key="client.id">
-        {{ client.name }} — {{ client.email }}
-      </li>
-    </ul>
+    <div class="card">
+      <div v-if="clients.length === 0" class="empty-state">
+        Nenhum cliente cadastrado ainda.
+      </div>
+      <ul v-else class="client-list">
+        <li v-for="client in clients" :key="client.id" class="client-item">
+          <div class="client-avatar">{{ client.name[0]?.toUpperCase() ?? '?' }}</div>
+          <div class="client-info">
+            <span class="client-name">{{ client.name }}</span>
+            <span class="client-email">{{ client.email }}</span>
+          </div>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -40,32 +61,94 @@ onMounted(fetchClients)
 </script>
 
 <style scoped>
-.container {
-  max-width: 600px;
-  margin: 40px auto;
+.page-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.count {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.form-card {
+  margin-bottom: 1.5rem;
+}
+
+.form-card h2 {
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.form-row .form-field {
+  flex: 1;
+}
+
+.btn-add {
+  white-space: nowrap;
+  height: 38px;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 2rem 0;
+  font-size: 0.9rem;
+}
+
+.client-list {
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
 }
 
-input {
-  padding: 8px;
-  font-size: 16px;
+.client-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--color-border);
 }
 
-button {
-  padding: 10px;
-  font-size: 16px;
-  cursor: pointer;
+.client-item:last-child {
+  border-bottom: none;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
+.client-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
-li {
-  padding: 8px 0;
-  border-bottom: 1px solid #ccc;
+.client-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.client-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.client-email {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
 }
 </style>

@@ -1,12 +1,29 @@
 <template>
-  <div class="login-container">
-    <h1>Login</h1>
-    <form @submit.prevent="handleLogin">
-      <input v-model="email" type="email" placeholder="Email" required />
-      <input v-model="password" type="password" placeholder="Senha" required />
-      <button type="submit">Entrar</button>
-    </form>
-    <p v-if="error">{{ error }}</p>
+  <div class="login-wrapper">
+    <div class="card login-card">
+      <div class="login-header">
+        <h1>Desafio FullStack</h1>
+        <p class="subtitle">Entre com sua conta para continuar</p>
+      </div>
+
+      <form @submit.prevent="handleLogin" class="login-form">
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input id="email" v-model="email" class="input" type="email" placeholder="seu@email.com" required />
+        </div>
+
+        <div class="form-field">
+          <label for="password">Senha</label>
+          <input id="password" v-model="password" class="input" type="password" placeholder="••••••••" required />
+        </div>
+
+        <p v-if="error" class="error-msg">{{ error }}</p>
+
+        <button type="submit" class="btn btn-primary btn-full" :disabled="loading">
+          {{ loading ? 'Entrando...' : 'Entrar' }}
+        </button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -18,9 +35,12 @@ import api from '../services/api'
 const email = ref('')
 const password = ref('')
 const error = ref('')
+const loading = ref(false)
 const router = useRouter()
 
 async function handleLogin() {
+  loading.value = true
+  error.value = ''
   try {
     const response = await api.post('/users/login', {
       email: email.value,
@@ -30,27 +50,56 @@ async function handleLogin() {
     router.push('/clients')
   } catch {
     error.value = 'Email ou senha inválidos'
+  } finally {
+    loading.value = false
   }
 }
 </script>
 
 <style scoped>
-.login-container {
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: 1rem;
+}
+
+.login-card {
+  width: 100%;
   max-width: 400px;
-  margin: 100px auto;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-header h1 {
+  color: var(--color-primary);
+  margin-bottom: 0.4rem;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.login-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
 }
 
-input {
-  padding: 8px;
-  font-size: 16px;
+.btn-full {
+  width: 100%;
+  padding: 0.7rem;
+  margin-top: 0.5rem;
 }
 
-button {
-  padding: 10px;
-  font-size: 16px;
-  cursor: pointer;
+.btn-full:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
