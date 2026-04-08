@@ -64,3 +64,29 @@ cd frontend
 npm install
 npm run dev
 ```
+
+---
+
+## Mobile
+
+Localizado em [mobile/](mobile/).
+
+| Ferramenta | Função |
+|---|---|
+| **Flutter** | Framework para construção da interface multiplataforma |
+| **Dart** | Linguagem de programação utilizada pelo Flutter |
+| **http** | Cliente HTTP para comunicação com a API do backend |
+| **google_fonts** | Tipografia com a fonte Inter na interface |
+
+### Como rodar
+
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+> Por padrão, a URL da API aponta para `http://localhost:3000`. Para alterar, defina a variável de ambiente `API_URL` ao compilar:
+> ```bash
+> flutter run --dart-define=API_URL=http://seu-servidor:3000
+> ```
