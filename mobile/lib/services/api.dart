@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -19,6 +20,8 @@ class ApiException implements Exception {
   @override
   String toString() => message;
 }
+
+const _timeout = Duration(seconds: 15);
 
 Map<String, String> get _headers => {
       'Content-Type': 'application/json',
@@ -44,10 +47,17 @@ dynamic _decode(http.Response response) {
 /// Realiza uma requisição GET para [path] relativo à [baseUrl].
 /// Inclui o [authToken] no header Authorization se disponível.
 /// Lança [ApiException] em caso de erro HTTP ou de rede.
+Future<T> _withTimeout<T>(Future<T> request) async {
+  try {
+    return await request.timeout(_timeout);
+  } on TimeoutException {
+    throw ApiException(0, 'Tempo de conexão esgotado. Verifique sua internet.');
+  }
+}
+
 Future<dynamic> apiGet(String path) async {
-  final response = await http.get(
-    Uri.parse('$baseUrl$path'),
-    headers: _headers,
+  final response = await _withTimeout(
+    http.get(Uri.parse('$baseUrl$path'), headers: _headers),
   );
   return _decode(response);
 }
@@ -56,10 +66,8 @@ Future<dynamic> apiGet(String path) async {
 /// Inclui o [authToken] no header Authorization se disponível.
 /// Lança [ApiException] em caso de erro HTTP ou de rede.
 Future<dynamic> apiPost(String path, Map<String, dynamic> body) async {
-  final response = await http.post(
-    Uri.parse('$baseUrl$path'),
-    headers: _headers,
-    body: jsonEncode(body),
+  final response = await _withTimeout(
+    http.post(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body)),
   );
   return _decode(response);
 }
@@ -68,10 +76,8 @@ Future<dynamic> apiPost(String path, Map<String, dynamic> body) async {
 /// Inclui o [authToken] no header Authorization se disponível.
 /// Lança [ApiException] em caso de erro HTTP ou de rede.
 Future<dynamic> apiPut(String path, Map<String, dynamic> body) async {
-  final response = await http.put(
-    Uri.parse('$baseUrl$path'),
-    headers: _headers,
-    body: jsonEncode(body),
+  final response = await _withTimeout(
+    http.put(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body)),
   );
   return _decode(response);
 }
@@ -80,9 +86,8 @@ Future<dynamic> apiPut(String path, Map<String, dynamic> body) async {
 /// Inclui o [authToken] no header Authorization se disponível.
 /// Lança [ApiException] em caso de erro HTTP ou de rede.
 Future<void> apiDelete(String path) async {
-  final response = await http.delete(
-    Uri.parse('$baseUrl$path'),
-    headers: _headers,
+  final response = await _withTimeout(
+    http.delete(Uri.parse('$baseUrl$path'), headers: _headers),
   );
   _decode(response);
 }
