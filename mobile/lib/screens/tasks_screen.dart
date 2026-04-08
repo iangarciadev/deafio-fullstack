@@ -325,7 +325,10 @@ class _TasksScreenState extends State<TasksScreen> {
           },
         );
       },
-    );
+    ).then((_) {
+      titleCtrl.dispose();
+      descCtrl.dispose();
+    });
   }
 
   /// Exibe um diálogo de confirmação antes de remover a tarefa de id [taskId].

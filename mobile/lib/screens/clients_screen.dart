@@ -201,7 +201,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
           },
         );
       },
-    );
+    ).then((_) {
+      nameCtrl.dispose();
+      emailCtrl.dispose();
+    });
   }
 
   /// Exibe um diálogo de confirmação antes de remover o cliente de id [clientId].

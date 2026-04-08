@@ -17,6 +17,13 @@ class _LoginScreenState extends State<LoginScreen> {
   String error = '';
   bool loading = false;
 
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   /// Envia as credenciais para a API e, em caso de sucesso, armazena o token
   /// JWT em [authToken] e navega para [ClientsScreen]. Em caso de falha,
   /// exibe a mensagem de erro na tela.
