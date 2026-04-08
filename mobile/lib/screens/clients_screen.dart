@@ -21,32 +21,56 @@ class _ClientsScreenState extends State<ClientsScreen> {
     fetchClients();
   }
 
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
   /// Busca a lista de clientes do usuário autenticado na API e atualiza o estado.
   Future<void> fetchClients() async {
-    final response = await apiGet('/clients');
-    setState(() {
-      clients = response;
-      loading = false;
-    });
+    try {
+      final response = await apiGet('/clients');
+      setState(() {
+        clients = response;
+        loading = false;
+      });
+    } catch (e) {
+      setState(() => loading = false);
+      _showError(e.toString());
+    }
   }
 
   /// Cria um novo cliente com [name] e [email] via API e recarrega a lista.
   Future<void> createClient(String name, String email) async {
-    await apiPost('/clients', {'name': name, 'email': email});
-    fetchClients();
+    try {
+      await apiPost('/clients', {'name': name, 'email': email});
+      fetchClients();
+    } catch (e) {
+      _showError(e.toString());
+    }
   }
 
   /// Atualiza o cliente de id [clientId] com novos [name] e [email] via API
   /// e recarrega a lista.
   Future<void> editClient(int clientId, String name, String email) async {
-    await apiPut('/clients/$clientId', {'name': name, 'email': email});
-    fetchClients();
+    try {
+      await apiPut('/clients/$clientId', {'name': name, 'email': email});
+      fetchClients();
+    } catch (e) {
+      _showError(e.toString());
+    }
   }
 
   /// Remove o cliente de id [clientId] via API e recarrega a lista.
   Future<void> deleteClient(int clientId) async {
-    await apiDelete('/clients/$clientId');
-    fetchClients();
+    try {
+      await apiDelete('/clients/$clientId');
+      fetchClients();
+    } catch (e) {
+      _showError(e.toString());
+    }
   }
 
   /// Exibe um modal com formulário de criação ou edição de cliente.

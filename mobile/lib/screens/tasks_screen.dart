@@ -22,49 +22,77 @@ class _TasksScreenState extends State<TasksScreen> {
     fetchTasks();
   }
 
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
   /// Busca as tarefas do cliente atual na API, aplicando o filtro de [selectedStatus]
   /// se definido, e atualiza o estado com os resultados.
   Future<void> fetchTasks() async {
-    String url = '/tasks?clientId=${widget.clientId}';
-    if (selectedStatus != null) url += '&status=$selectedStatus';
-    final response = await apiGet(url);
-    setState(() {
-      tasks = response;
-      loading = false;
-    });
+    try {
+      String url = '/tasks?clientId=${widget.clientId}';
+      if (selectedStatus != null) url += '&status=$selectedStatus';
+      final response = await apiGet(url);
+      setState(() {
+        tasks = response;
+        loading = false;
+      });
+    } catch (e) {
+      setState(() => loading = false);
+      _showError(e.toString());
+    }
   }
 
   /// Atualiza o [status] da tarefa de id [taskId] via API e recarrega a lista.
   Future<void> updateStatus(int taskId, String status) async {
-    await apiPut('/tasks/$taskId', {'status': status});
-    fetchTasks();
+    try {
+      await apiPut('/tasks/$taskId', {'status': status});
+      fetchTasks();
+    } catch (e) {
+      _showError(e.toString());
+    }
   }
 
   /// Cria uma nova tarefa com [title] e [description] vinculada ao cliente atual
   /// via API e recarrega a lista.
   Future<void> createTask(String title, String description) async {
-    await apiPost('/tasks', {
-      'title': title,
-      'description': description,
-      'clientId': widget.clientId,
-    });
-    fetchTasks();
+    try {
+      await apiPost('/tasks', {
+        'title': title,
+        'description': description,
+        'clientId': widget.clientId,
+      });
+      fetchTasks();
+    } catch (e) {
+      _showError(e.toString());
+    }
   }
 
   /// Atualiza o [title] e [description] da tarefa de id [taskId] via API
   /// e recarrega a lista.
   Future<void> editTask(int taskId, String title, String description) async {
-    await apiPut('/tasks/$taskId', {
-      'title': title,
-      'description': description,
-    });
-    fetchTasks();
+    try {
+      await apiPut('/tasks/$taskId', {
+        'title': title,
+        'description': description,
+      });
+      fetchTasks();
+    } catch (e) {
+      _showError(e.toString());
+    }
   }
 
   /// Remove a tarefa de id [taskId] via API e recarrega a lista.
   Future<void> deleteTask(int taskId) async {
-    await apiDelete('/tasks/$taskId');
-    fetchTasks();
+    try {
+      await apiDelete('/tasks/$taskId');
+      fetchTasks();
+    } catch (e) {
+      _showError(e.toString());
+    }
   }
 
   /// Retorna um badge colorido representando o [status] da tarefa

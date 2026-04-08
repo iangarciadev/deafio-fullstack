@@ -26,20 +26,28 @@ class _LoginScreenState extends State<LoginScreen> {
       error = '';
     });
 
-    final response = await apiPost('/users/login', {
-      'email': emailController.text,
-      'password': passwordController.text,
-    });
+    try {
+      final response = await apiPost('/users/login', {
+        'email': emailController.text,
+        'password': passwordController.text,
+      });
 
-    if (response['token'] != null) {
-      authToken = response['token'];
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const ClientsScreen()),
-      );
-    } else {
+      if (response['token'] != null) {
+        authToken = response['token'];
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ClientsScreen()),
+        );
+      } else {
+        setState(() {
+          error = 'Email ou senha inválidos';
+          loading = false;
+        });
+      }
+    } catch (e) {
       setState(() {
-        error = 'Email ou senha inválidos';
+        error = e.toString();
         loading = false;
       });
     }

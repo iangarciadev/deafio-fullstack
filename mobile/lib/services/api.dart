@@ -9,58 +9,80 @@ const String baseUrl = String.fromEnvironment(
 /// Token JWT do usuário autenticado. Nulo quando não há sessão ativa.
 String? authToken;
 
+/// Exceção lançada quando a API retorna um status de erro (4xx/5xx)
+/// ou quando ocorre um erro de rede/decodificação.
+class ApiException implements Exception {
+  final int statusCode;
+  final String message;
+  ApiException(this.statusCode, this.message);
+
+  @override
+  String toString() => message;
+}
+
+Map<String, String> get _headers => {
+      'Content-Type': 'application/json',
+      if (authToken != null) 'Authorization': 'Bearer $authToken',
+    };
+
+/// Decodifica a resposta HTTP e lança [ApiException] em caso de erro.
+dynamic _decode(http.Response response) {
+  if (response.body.isEmpty) {
+    if (response.statusCode >= 200 && response.statusCode < 300) return null;
+    throw ApiException(response.statusCode, 'Erro ${response.statusCode}');
+  }
+  final data = jsonDecode(response.body);
+  if (response.statusCode >= 400) {
+    final msg = data is Map
+        ? (data['error'] ?? data['message'] ?? 'Erro ${response.statusCode}')
+        : 'Erro ${response.statusCode}';
+    throw ApiException(response.statusCode, msg.toString());
+  }
+  return data;
+}
+
 /// Realiza uma requisição GET para [path] relativo à [baseUrl].
 /// Inclui o [authToken] no header Authorization se disponível.
-/// Retorna o corpo da resposta decodificado como JSON.
+/// Lança [ApiException] em caso de erro HTTP ou de rede.
 Future<dynamic> apiGet(String path) async {
   final response = await http.get(
     Uri.parse('$baseUrl$path'),
-    headers: {
-      'Content-Type': 'application/json',
-      if (authToken != null) 'Authorization': 'Bearer $authToken',
-    },
+    headers: _headers,
   );
-  return jsonDecode(response.body);
+  return _decode(response);
 }
 
 /// Realiza uma requisição POST para [path] com [body] serializado como JSON.
 /// Inclui o [authToken] no header Authorization se disponível.
-/// Retorna o corpo da resposta decodificado como JSON.
+/// Lança [ApiException] em caso de erro HTTP ou de rede.
 Future<dynamic> apiPost(String path, Map<String, dynamic> body) async {
   final response = await http.post(
     Uri.parse('$baseUrl$path'),
-    headers: {
-      'Content-Type': 'application/json',
-      if (authToken != null) 'Authorization': 'Bearer $authToken',
-    },
+    headers: _headers,
     body: jsonEncode(body),
   );
-  return jsonDecode(response.body);
+  return _decode(response);
 }
 
 /// Realiza uma requisição PUT para [path] com [body] serializado como JSON.
 /// Inclui o [authToken] no header Authorization se disponível.
-/// Retorna o corpo da resposta decodificado como JSON.
+/// Lança [ApiException] em caso de erro HTTP ou de rede.
 Future<dynamic> apiPut(String path, Map<String, dynamic> body) async {
   final response = await http.put(
     Uri.parse('$baseUrl$path'),
-    headers: {
-      'Content-Type': 'application/json',
-      if (authToken != null) 'Authorization': 'Bearer $authToken',
-    },
+    headers: _headers,
     body: jsonEncode(body),
   );
-  return jsonDecode(response.body);
+  return _decode(response);
 }
 
 /// Realiza uma requisição DELETE para [path].
 /// Inclui o [authToken] no header Authorization se disponível.
+/// Lança [ApiException] em caso de erro HTTP ou de rede.
 Future<void> apiDelete(String path) async {
-  await http.delete(
+  final response = await http.delete(
     Uri.parse('$baseUrl$path'),
-    headers: {
-      'Content-Type': 'application/json',
-      if (authToken != null) 'Authorization': 'Bearer $authToken',
-    },
+    headers: _headers,
   );
+  _decode(response);
 }
