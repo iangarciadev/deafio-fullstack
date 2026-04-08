@@ -29,6 +29,7 @@
           <button type="submit" class="btn btn-primary">Adicionar</button>
         </div>
       </form>
+      <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
 
     <div class="card">
@@ -75,6 +76,7 @@ const title = ref('')
 const description = ref('')
 const clientId = ref('')
 const statusFilter = ref('')
+const error = ref('')
 
 // Converte o status interno da tarefa para o rótulo em português exibido na interface.
 function statusLabel(status: string) {
@@ -98,37 +100,55 @@ function statusBadgeClass(status: string) {
 // Busca as tarefas do usuário autenticado via GET /tasks.
 // Aplica o filtro de status como query param caso esteja selecionado.
 async function fetchTasks() {
-  const params: Record<string, string> = {}
-  if (statusFilter.value) params.status = statusFilter.value
-  const response = await api.get('/tasks', { params })
-  tasks.value = response.data
+  try {
+    const params: Record<string, string> = {}
+    if (statusFilter.value) params.status = statusFilter.value
+    const response = await api.get('/tasks', { params })
+    tasks.value = response.data
+  } catch {
+    error.value = 'Erro ao carregar tarefas. Tente novamente.'
+  }
 }
 
 // Busca todos os clientes via GET /clients para popular o dropdown de seleção no formulário.
 async function fetchClients() {
-  const response = await api.get('/clients')
-  clients.value = response.data
+  try {
+    const response = await api.get('/clients')
+    clients.value = response.data
+  } catch {
+    error.value = 'Erro ao carregar clientes. Tente novamente.'
+  }
 }
 
 // Cria uma nova tarefa via POST /tasks com título, descrição e clientId.
 // Limpa o formulário e atualiza a lista de tarefas após a criação.
 async function handleCreate() {
-  await api.post('/tasks', {
-    title: title.value,
-    description: description.value,
-    clientId: clientId.value
-  })
-  title.value = ''
-  description.value = ''
-  clientId.value = ''
-  fetchTasks()
+  error.value = ''
+  try {
+    await api.post('/tasks', {
+      title: title.value,
+      description: description.value,
+      clientId: clientId.value
+    })
+    title.value = ''
+    description.value = ''
+    clientId.value = ''
+    await fetchTasks()
+  } catch {
+    error.value = 'Erro ao adicionar tarefa. Tente novamente.'
+  }
 }
 
 // Atualiza o status de uma tarefa via PUT /tasks/:id com o novo valor selecionado.
 // O estado local só é atualizado após a confirmação da API via fetchTasks().
 async function handleUpdateStatus(task: { id: number; status: string }, newStatus: string) {
-  await api.put(`/tasks/${task.id}`, { status: newStatus })
-  fetchTasks()
+  error.value = ''
+  try {
+    await api.put(`/tasks/${task.id}`, { status: newStatus })
+    await fetchTasks()
+  } catch {
+    error.value = 'Erro ao atualizar o status. Tente novamente.'
+  }
 }
 
 // Carrega as tarefas e os clientes ao montar o componente.

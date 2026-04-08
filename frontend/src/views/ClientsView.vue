@@ -18,6 +18,7 @@
         </div>
         <button type="submit" class="btn btn-primary btn-add">Adicionar</button>
       </form>
+      <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
 
     <div class="card">
@@ -44,19 +45,29 @@ import api from '../services/api'
 const clients = ref<{ id: number; name: string; email: string }[]>([])
 const name = ref('')
 const email = ref('')
+const error = ref('')
 
 // Busca todos os clientes do usuário autenticado via GET /clients e popula a lista.
 async function fetchClients() {
-  const response = await api.get('/clients')
-  clients.value = response.data
+  try {
+    const response = await api.get('/clients')
+    clients.value = response.data
+  } catch {
+    error.value = 'Erro ao carregar clientes. Tente novamente.'
+  }
 }
 
 // Cria um novo cliente via POST /clients com nome e email, limpa o formulário e atualiza a lista.
 async function handleCreate() {
-  await api.post('/clients', { name: name.value, email: email.value })
-  name.value = ''
-  email.value = ''
-  fetchClients()
+  error.value = ''
+  try {
+    await api.post('/clients', { name: name.value, email: email.value })
+    name.value = ''
+    email.value = ''
+    await fetchClients()
+  } catch {
+    error.value = 'Erro ao adicionar cliente. Tente novamente.'
+  }
 }
 
 // Carrega a lista de clientes ao montar o componente.
