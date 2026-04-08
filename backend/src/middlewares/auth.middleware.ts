@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
+import logger from '../logger'
 
 // Middleware de autenticação JWT. Lê o token do header Authorization (formato
 // "Bearer <token>"), valida a assinatura e injeta o userId decodificado na
@@ -8,6 +9,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   const authHeader = req.headers.authorization
 
   if (!authHeader) {
+    logger.warn({ path: req.path, method: req.method }, 'Auth rejeitado: token não fornecido')
     return res.status(401).json({ error: 'Token não fornecido' })
   }
 
@@ -18,6 +20,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     req.userId = decoded.userId
     next()
   } catch {
+    logger.warn({ path: req.path, method: req.method }, 'Auth rejeitado: token inválido')
     return res.status(401).json({ error: 'Token inválido' })
   }
 }

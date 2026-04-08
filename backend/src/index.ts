@@ -1,14 +1,17 @@
 import express from 'express'
 import cors from 'cors'
+import pinoHttp from 'pino-http'
 import swaggerJsdoc from 'swagger-jsdoc'
 import swaggerUi from 'swagger-ui-express'
 import usersRoutes from './modules/users/users.routes'
 import clientsRoutes from './modules/clients/clients.routes'
 import tasksRoutes from './modules/tasks/tasks.routes'
+import logger from './logger'
 
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use(pinoHttp({ logger }))
 
 const swaggerOptions: swaggerJsdoc.Options = {
   definition: {
@@ -83,6 +86,6 @@ app.use('/clients', clientsRoutes)
 app.use('/tasks', tasksRoutes)
 
 app.listen(3000, () => {
-  console.log('Servidor na porta 3000')
-  console.log('Documentação disponível em http://localhost:3000/docs')
+  logger.info('Servidor iniciado na porta 3000')
+  logger.info('Documentação disponível em http://localhost:3000/docs')
 })
