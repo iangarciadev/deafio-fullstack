@@ -20,7 +20,7 @@
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
 
-const clients = ref([])
+const clients = ref<{ id: number; name: string; email: string }[]>([])
 const name = ref('')
 const email = ref('')
 
