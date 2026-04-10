@@ -1,4 +1,5 @@
 import axios from 'axios'
+import router from '../router'
 
 // Instância do axios configurada com a URL base da API definida em VITE_API_URL.
 const api = axios.create({
@@ -13,5 +14,18 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+
+// Interceptor de resposta: se o backend retornar 401, o token está inválido ou
+// expirado — remove-o do localStorage e redireciona para o login.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      router.push('/')
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default api
